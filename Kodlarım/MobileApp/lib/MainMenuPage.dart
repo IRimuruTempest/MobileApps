@@ -6,16 +6,16 @@ import 'package:mysqlengjpn/userNotifier.dart';
 import 'package:provider/provider.dart';
 import 'EnglishDictionaryPage.dart';
 import 'MoneyManagement.dart';
-import 'KeepGoingSteadily.dart';
+import 'HobbiesPage.dart';
 import 'package:mysqlengjpn/LoginPage.dart';
 
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});
+
   _MainMenuPage createState() => _MainMenuPage();
 }
 
 class _MainMenuPage extends State<MainMenuPage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +37,7 @@ class _MainMenuPage extends State<MainMenuPage> {
             InkWell(
               child: Container(
                 child:
-                Image(image: AssetImage('assets/EnglishButtonImage.png')),
+                    Image(image: AssetImage('assets/EnglishButtonImage.png')),
                 width: 50,
                 height: 50,
                 margin: EdgeInsets.all(10),
@@ -102,7 +102,7 @@ class _MainMenuPage extends State<MainMenuPage> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const MoneyManagementPage()));
+                        builder: (context) =>  MoneyManagementPage()));
               },
             ),
             InkWell(
@@ -121,7 +121,7 @@ class _MainMenuPage extends State<MainMenuPage> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const KeepGoingSteadily()));
+                        builder: (context) => HobbiesPage()));
               },
             ),
             InkWell(

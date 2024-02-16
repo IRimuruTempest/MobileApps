@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 
+
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -16,16 +18,18 @@ class _LoginPage extends State<LoginPage> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  Future<void> login() async {
-    final String url =
-        "http://192.168.0.28/login.php"; // Replace with your API endpoint
 
+
+  Future<void> login() async {
+    final String url = "http://192.168.0.28/login.php"; // Replace with your API endpoint
+    DateTime loginTime = DateTime.now();
     try {
       final response = await http.post(
         Uri.parse(url),
         body: {
           "username": usernameController.text,
           "password": passwordController.text,
+          "login_time": loginTime.toString(), // Add login time
         },
       );
 

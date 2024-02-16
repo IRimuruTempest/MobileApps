@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'dart:convert';
+import 'package:mysqlengjpn/userNotifier.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'MainMenuPage.dart';
 
 class BooksPage extends StatefulWidget {
@@ -9,10 +12,19 @@ class BooksPage extends StatefulWidget {
 }
 
 class _BooksPage extends State<BooksPage> {
+  TextEditingController searchController = TextEditingController();
   String? dropdownValue;
+
+  List<Map<String, dynamic>> result = [
+    {"book_part": "asd"}
+  ];
+  List<Map<String, dynamic>> resulttxt = [
+    {"book_text": "asd"}
+  ];
 
   @override
   Widget build(BuildContext context) {
+    int currentUser = Provider.of<UserProvider>(context).currentUser;
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -34,6 +46,7 @@ class _BooksPage extends State<BooksPage> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
                     child: TextField(
+                      controller: searchController,
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'search term',
@@ -49,28 +62,12 @@ class _BooksPage extends State<BooksPage> {
                     gradient: LinearGradient(
                         colors: [Color(0xff06d1ec), Color(0xff83f202)])),
               ),
-              IconButton(onPressed: () {}, icon: Icon(Icons.search))
+              IconButton(
+                  onPressed: () {
+                    fetchDataFromDatabase(currentUser);
+                  },
+                  icon: Icon(Icons.search))
             ],
-          ),
-          Container(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                child: TextField(
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Book name',
-                  ),
-                ),
-              ),
-            ),
-            margin: EdgeInsets.fromLTRB(10, 10, 0, 10),
-            width: 350,
-            height: 50,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                    colors: [Color(0xff06d1ec), Color(0xff83f202)])),
           ),
           Container(
             margin: EdgeInsets.fromLTRB(10, 10, 0, 10),
@@ -82,29 +79,23 @@ class _BooksPage extends State<BooksPage> {
                     colors: [Color(0xff06d1ec), Color(0xff83f202)])),
             child: Padding(
               padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                ),
+              child: DropdownButton<String>(
                 borderRadius: BorderRadius.circular(20.0),
                 hint: const Text('Select book part'),
                 value: dropdownValue,
                 onChanged: (String? newValue) {
-                  setState(
-                    () {
-                      dropdownValue = newValue!;
-                    },
-                  );
+                  setState(() {
+                    dropdownValue = newValue!;
+                    bookReturnText(currentUser);
+                  });
                 },
-                items: <String>['Apple', 'Mango', 'Banana', 'Peach']
-                    .map<DropdownMenuItem<String>>(
-                  (String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  },
-                ).toList(),
+                items: result
+                    .map<DropdownMenuItem<String>>((Map<String, dynamic> item) {
+                  return DropdownMenuItem<String>(
+                    value: item["book_part"],
+                    child: Text(item["book_part"]),
+                  );
+                }).toList(),
               ),
             ),
           ),
@@ -157,6 +148,9 @@ class _BooksPage extends State<BooksPage> {
             margin: EdgeInsets.all(15),
             width: 400,
             height: 400,
+            child: ListView(
+              children: [Text(resulttxt[0]["book_text"])],
+            ),
             decoration: BoxDecoration(
                 gradient: LinearGradient(
                     colors: [Color(0xff570bd2), Color(0xff0bd26e)])),
@@ -164,5 +158,72 @@ class _BooksPage extends State<BooksPage> {
         ]),
       ),
     );
+  }
+
+  void fetchDataFromDatabase(int user) async {
+    final String url = "http://192.168.0.28/bookfetchdata.php";
+
+    // Send data to PHP script
+    var response = await http.post(
+      Uri.parse(url),
+      body: {
+        'currentUserId': user.toString(),
+        'BookName': searchController.text
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print("status code 200");
+      if (response.body.isNotEmpty) {
+        List<Map<String, dynamic>> data =
+            (json.decode(response.body) as List<dynamic>)
+                .cast<Map<String, dynamic>>();
+        setState(() {
+          result = data;
+        });
+        // Process the data as needed
+      } else {
+        print("Empty response received from the server");
+      }
+      // Use the data as needed
+    } else {
+      print("Failed to fetch data from the server");
+      print("Response Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+    }
+  }
+
+  void bookReturnText(int user) async {
+    final String url = "http://192.168.0.28/bookreturntext.php";
+
+    // Send data to PHP script
+    var response = await http.post(
+      Uri.parse(url),
+      body: {
+        'currentUserId': user.toString(),
+        'BookName': searchController.text,
+        'BookPart': dropdownValue,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print("status code 200");
+      if (response.body.isNotEmpty) {
+        List<Map<String, dynamic>> data =
+            (json.decode(response.body) as List<dynamic>)
+                .cast<Map<String, dynamic>>();
+        setState(() {
+          resulttxt = data;
+        });
+        // Process the data as needed
+      } else {
+        print("Empty response received from the server");
+      }
+      // Use the data as needed
+    } else {
+      print("Failed to fetch data from the server");
+      print("Response Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+    }
   }
 }
