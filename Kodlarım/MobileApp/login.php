@@ -16,6 +16,9 @@ if ($connection->connect_error) {
 $username = $connection->real_escape_string($_POST['username']);
 $password = $connection->real_escape_string($_POST['password']);
 
+// Get current date and time
+$login_time = date('Y-m-d H:i:s');
+
 // Query to check user credentials using prepared statement
 $query = "SELECT * FROM users WHERE user_username = ? AND user_password = ?";
 $stmt = $connection->prepare($query);
@@ -26,9 +29,17 @@ $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     // Login successful
     $row = $result->fetch_assoc();
+    $user_id = $row['user_id'];
+
+    // Insert login time into user_login_history table
+    $insert_query = "INSERT INTO user_login_history (user_id, login_time) VALUES (?, ?)";
+    $insert_stmt = $connection->prepare($insert_query);
+    $insert_stmt->bind_param("is", $user_id, $login_time);
+    $insert_stmt->execute();
+
     $response['success'] = true;
     $response['message'] = 'Login successful';
-    $response['user_id'] = $row['user_id']; // Replace 'userID' with your actual column name
+    $response['user_id'] = $user_id;
 } else {
     // Login failed
     $response['success'] = false;
